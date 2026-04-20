@@ -336,6 +336,127 @@ table { width: 100%; border-collapse: collapse; }
 .badge.gender-m { background: #dbeafe; color: #1e40af; }
 .badge.gender-f { background: #fce7f3; color: #9d174d; }
 
+/* 판정 배지 */
+.badge.judg-A { background: #dcfce7; color: #166534; }
+.badge.judg-B { background: #d1fae5; color: #065f46; }
+.badge.judg-C1, .badge.judg-C2 { background: #fef3c7; color: #92400e; }
+.badge.judg-D1, .badge.judg-D2 { background: #fee2e2; color: #991b1b; }
+.badge.judg-R { background: #f3e8ff; color: #6b21a8; }
+.badge.warn { background: #fef3c7; color: #92400e; }
+
+/* 감염병 항체 현황 */
+.antibody-grid {
+  display: inline-flex;
+  gap: 4px;
+  font-size: 10px;
+}
+.antibody-pill {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.antibody-pill.positive { background: #dcfce7; color: #166534; border-color: #86efac; }
+.antibody-pill.negative { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+.antibody-pill.unknown { background: #f3f4f6; color: #6b7280; border-color: #d1d5db; }
+
+/* 검진 탭 */
+.exam-tabs { border-bottom: 1px solid var(--border); }
+.exam-tab {
+  flex: 1;
+  padding: 14px 16px;
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.exam-tab:hover { color: var(--text); background: var(--surface-2); }
+.exam-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: var(--surface);
+}
+.exam-tab small { font-size: 10px; font-weight: 500; }
+
+/* 접종 차수 칸 */
+.dose-cell {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+.dose-cell .dose-label { color: var(--text-3); font-size: 9px; font-weight: 600; }
+.dose-cell .dose-date { font-family: monospace; color: var(--text); }
+.dose-cell .dose-none { color: var(--text-3); font-style: italic; }
+
+/* 검진 유형 배지 */
+.badge.type-preemp { background: #e0e7ff; color: #3730a3; }
+.badge.type-general { background: #dbeafe; color: #1e40af; }
+.badge.type-special { background: #fef3c7; color: #92400e; }
+
+/* 유소견 섹션 접기/펼치기 */
+.collapsible {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 12px;
+  overflow: hidden;
+}
+.collapsible-header {
+  padding: 10px 14px;
+  background: var(--surface-2);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  user-select: none;
+}
+.collapsible-header:hover { background: #e5e7eb; }
+.collapsible-body {
+  padding: 14px;
+  display: none;
+}
+.collapsible.open .collapsible-body { display: block; }
+.collapsible .chevron { transition: transform 0.2s; }
+.collapsible.open .chevron { transform: rotate(180deg); }
+
+/* 타임라인 */
+.timeline {
+  position: relative;
+  padding-left: 24px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-item {
+  position: relative;
+  padding-bottom: 14px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -22px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+}
+.timeline-item .date { font-size: 12px; color: var(--text-3); font-family: monospace; }
+.timeline-item .title { font-weight: 600; font-size: 13px; margin-top: 2px; }
+.timeline-item .desc { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
 /* 검색 툴바 */
 .toolbar {
   display: flex;
@@ -614,6 +735,18 @@ table { width: 100%; border-collapse: collapse; }
         <span class="icon">👥</span>
         <span>직원 관리</span>
       </div>
+      <div class="nav-item" data-view="exams">
+        <span class="icon">🩺</span>
+        <span>건강검진</span>
+      </div>
+      <div class="nav-item" data-view="vaccinations">
+        <span class="icon">💉</span>
+        <span>예방접종</span>
+      </div>
+      <div class="nav-item" data-view="counsel-queue">
+        <span class="icon">⚠️</span>
+        <span>상담 대기자</span>
+      </div>
       <div class="nav-item" data-view="import">
         <span class="icon">📥</span>
         <span>엑셀 일괄 업로드</span>
@@ -796,6 +929,207 @@ table { width: 100%; border-collapse: collapse; }
         </div>
       </section>
 
+      <!-- 건강검진 뷰 -->
+      <section class="view" id="view-exams">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">건강검진</h1>
+            <div class="page-subtitle">채용·일반·특수 검진 기록 관리</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-outline" id="btnExamRefresh">🔄 새로고침</button>
+            <button class="btn btn-outline" id="btnExamExport">📤 엑셀 내보내기</button>
+            <button class="btn btn-outline" id="btnExamBulkUpload">📥 엑셀 일괄 업로드</button>
+            <button class="btn btn-primary" id="btnAddExam">➕ 개별 입력</button>
+          </div>
+        </div>
+
+        <div class="stats" id="examStats"></div>
+
+        <div class="card">
+          <div class="card-header" style="padding:0">
+            <div class="exam-tabs" style="display:flex;gap:0;width:100%">
+              <button class="exam-tab active" data-exam-type="preemployment">🎓 채용검진</button>
+              <button class="exam-tab" data-exam-type="general">📋 일반검진 <small style="opacity:0.5">(Phase 2-2)</small></button>
+              <button class="exam-tab" data-exam-type="special">⚠️ 특수검진 <small style="opacity:0.5">(Phase 2-3)</small></button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="toolbar">
+              <div class="search">
+                <input type="text" id="examSearchInput" placeholder="이름·사번·판정으로 검색…">
+              </div>
+              <select id="filterJudgment">
+                <option value="">전체 판정</option>
+                <option value="A">A (정상)</option>
+                <option value="B">B (경계)</option>
+                <option value="C">C (요관찰)</option>
+                <option value="D">D (유소견)</option>
+                <option value="R">R (재검)</option>
+              </select>
+              <select id="filterExamYear">
+                <option value="">전체 연도</option>
+              </select>
+            </div>
+            
+            <div style="overflow-x:auto">
+              <table class="data-table" id="examTable">
+                <thead>
+                  <tr>
+                    <th>사번</th>
+                    <th>이름</th>
+                    <th>부서</th>
+                    <th>검진일</th>
+                    <th>종합판정</th>
+                    <th>감염병 항체</th>
+                    <th>상담필요</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="examTableBody"></tbody>
+              </table>
+              <div id="examEmptyState" class="empty-state" style="display:none">
+                <div class="icon">🩺</div>
+                <div class="title">검진 기록이 없습니다</div>
+                <div class="desc">우측 상단 '➕ 개별 입력' 또는 '📥 엑셀 일괄 업로드'로 시작하세요</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pagination" id="examPagination" style="display:none">
+            <div class="info" id="examPageInfo"></div>
+            <div class="pages" id="examPageButtons"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 예방접종 뷰 -->
+      <section class="view" id="view-vaccinations">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">예방접종 관리</h1>
+            <div class="page-subtitle">B형간염·A형간염·수두·홍역 차수별 접종일 및 항체 현황</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-outline" id="btnVaccRefresh">🔄 새로고침</button>
+            <button class="btn btn-outline" id="btnVaccExport">📤 엑셀 내보내기</button>
+            <button class="btn btn-primary" id="btnAddVacc">➕ 개별 입력</button>
+          </div>
+        </div>
+
+        <div class="stats" id="vaccStats"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="title">접종 현황</div>
+            <span class="badge gray" id="vaccCountBadge">0명</span>
+          </div>
+          <div class="card-body">
+            <div class="toolbar">
+              <div class="search">
+                <input type="text" id="vaccSearchInput" placeholder="이름·사번으로 검색…">
+              </div>
+              <select id="filterVaccStatus">
+                <option value="">전체</option>
+                <option value="complete">접종 완료</option>
+                <option value="partial">진행 중</option>
+                <option value="none">미접종</option>
+                <option value="antibody-positive">항체(+)</option>
+                <option value="antibody-negative">항체(-)</option>
+              </select>
+              <select id="filterVaccType">
+                <option value="hepatitisB">B형간염</option>
+                <option value="hepatitisA">A형간염</option>
+                <option value="varicella">수두</option>
+                <option value="measles">홍역</option>
+              </select>
+            </div>
+            
+            <div style="overflow-x:auto">
+              <table class="data-table" id="vaccTable">
+                <thead id="vaccTableHead"></thead>
+                <tbody id="vaccTableBody"></tbody>
+              </table>
+              <div id="vaccEmptyState" class="empty-state" style="display:none">
+                <div class="icon">💉</div>
+                <div class="title">접종 기록이 없습니다</div>
+                <div class="desc">우측 상단 '➕ 개별 입력'으로 시작하세요</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pagination" id="vaccPagination" style="display:none">
+            <div class="info" id="vaccPageInfo"></div>
+            <div class="pages" id="vaccPageButtons"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 상담 대기자 뷰 -->
+      <section class="view" id="view-counsel-queue">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">상담 대기자</h1>
+            <div class="page-subtitle">검진 결과 C/D/R 판정자 자동 집계 · Phase 3에서 상담일지 연동</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-outline" id="btnQueueRefresh">🔄 새로고침</button>
+            <button class="btn btn-outline" id="btnQueueExport">📤 엑셀 내보내기</button>
+          </div>
+        </div>
+
+        <div class="stats" id="queueStats"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="title">상담 필요 직원</div>
+            <span class="badge warn" id="queueCountBadge">0명</span>
+          </div>
+          <div class="card-body">
+            <div class="toolbar">
+              <div class="search">
+                <input type="text" id="queueSearchInput" placeholder="이름·사번으로 검색…">
+              </div>
+              <select id="filterQueueType">
+                <option value="">전체 검진 종류</option>
+                <option value="preemployment">채용검진</option>
+                <option value="general">일반검진</option>
+                <option value="special">특수검진</option>
+              </select>
+              <select id="filterQueueJudgment">
+                <option value="">전체 판정</option>
+                <option value="C">C (요관찰)</option>
+                <option value="D">D (유소견)</option>
+                <option value="R">R (재검)</option>
+              </select>
+            </div>
+            
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>사번</th>
+                    <th>이름</th>
+                    <th>부서</th>
+                    <th>검진일</th>
+                    <th>검진 종류</th>
+                    <th>판정</th>
+                    <th>소견</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="queueTableBody"></tbody>
+              </table>
+              <div id="queueEmptyState" class="empty-state" style="display:none">
+                <div class="icon">✅</div>
+                <div class="title">상담 필요 직원이 없습니다</div>
+                <div class="desc">검진 결과에 C/D/R 판정자가 있을 때 여기에 자동 집계됩니다</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 설정 뷰 -->
       <section class="view" id="view-settings">
         <div class="page-header">
@@ -891,7 +1225,7 @@ service cloud.firestore {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, limit, writeBatch, serverTimestamp
+  query, where, orderBy, limit, writeBatch, serverTimestamp, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword
@@ -1019,6 +1353,61 @@ function isOfficeJob(jobTitle) {
   return officeKeywords.some(k => String(jobTitle||'').includes(k));
 }
 
+/**
+ * 검진 판정 분류
+ * A: 건강 / B: 경계 / C1·C2: 요관찰 / D1·D2: 유소견 / R: 재검
+ * 반환: { category, label, needCounsel, color }
+ */
+function classifyJudgment(raw) {
+  if (!raw) return { category: '', label: '-', needCounsel: false };
+  const j = String(raw).trim().toUpperCase().replace(/\s+/g, '');
+  
+  if (/^A/.test(j) || j === '정상') {
+    return { category: 'A', label: 'A', needCounsel: false };
+  }
+  if (/^B/.test(j) || j === '경계') {
+    return { category: 'B', label: 'B', needCounsel: false };
+  }
+  if (/^C2|^CD/.test(j)) {
+    return { category: 'C2', label: 'C₂', needCounsel: true };
+  }
+  if (/^C1|^CN|^C$/.test(j) || j === '요관찰') {
+    return { category: 'C1', label: 'C₁', needCounsel: true };
+  }
+  if (/^D2|^DD/.test(j)) {
+    return { category: 'D2', label: 'D₂', needCounsel: true };
+  }
+  if (/^D1|^DN|^D$/.test(j) || j === '유소견') {
+    return { category: 'D1', label: 'D₁', needCounsel: true };
+  }
+  if (/^R/.test(j) || j === '재검' || j === '재검사') {
+    return { category: 'R', label: 'R', needCounsel: true };
+  }
+  return { category: 'other', label: String(raw).substring(0, 10), needCounsel: false };
+}
+
+/**
+ * 감염병 항체 상태 요약 (1명당 4개 백신)
+ * vacc 객체: { hepatitisB: {status: 'positive'}, hepatitisA: {...}, ... }
+ */
+function renderAntibodyPills(vacc) {
+  if (!vacc) return '<span style="color:var(--text-3);font-size:11px">미등록</span>';
+  const types = [
+    { key: 'hepatitisB', label: 'B간' },
+    { key: 'hepatitisA', label: 'A간' },
+    { key: 'varicella', label: '수두' },
+    { key: 'measles', label: '홍역' },
+  ];
+  return '<div class="antibody-grid">' + types.map(t => {
+    const v = vacc[t.key];
+    const status = v && v.antibody;
+    const cls = status === '양성' ? 'positive' 
+              : status === '음성' ? 'negative' 
+              : 'unknown';
+    return `<span class="antibody-pill ${cls}">${t.label}</span>`;
+  }).join('') + '</div>';
+}
+
 function toast(msg, type='info', duration=3000) {
   const el = document.createElement('div');
   el.className = `toast toast-${type}`;
@@ -1089,12 +1478,38 @@ const DB = {
   async saveEmployee(emp) {
     if (!emp.empCode) throw new Error('사번 필수');
     const ref = doc(db, COL.EMPLOYEES, String(emp.empCode));
-    // undefined는 Firestore에서 에러 발생하므로 제거
+    
+    // 삭제 대상 필드 목록 (수정 가능한 모든 필드)
+    const ALL_FIELDS = [
+      'name', 'department', 'jobTitle', 'hireDate', 'birthDate', 
+      'resignDate', 'transferDate', 'gender', 'email', 'phone', 
+      'hazard', 'status', 'resignNote'
+    ];
+    
     const clean = {};
-    Object.keys(emp).forEach(k => {
-      if (emp[k] !== undefined && emp[k] !== '') clean[k] = emp[k];
+    // 들어온 값은 그대로, 빈 값은 deleteField()로 처리
+    ALL_FIELDS.forEach(k => {
+      const v = emp[k];
+      if (v === undefined || v === null || v === '') {
+        // 명시적으로 DB에서 삭제
+        clean[k] = deleteField();
+      } else {
+        clean[k] = v;
+      }
     });
-    await setDoc(ref, { ...clean, updatedAt: serverTimestamp() }, { merge: true });
+    
+    // empCode는 문서 ID이므로 별도 저장 불필요하지만, 검색 편의를 위해 유지
+    clean.empCode = String(emp.empCode);
+    clean.updatedAt = serverTimestamp();
+    
+    // 퇴사일이 비었으면 status도 재직으로 복구 (leave가 아닌 경우)
+    if ((emp.resignDate === undefined || emp.resignDate === null || emp.resignDate === '') 
+        && emp.status !== 'leave') {
+      clean.status = deleteField();
+      clean.resignNote = deleteField();
+    }
+    
+    await setDoc(ref, clean, { merge: true });
     return emp.empCode;
   },
   
@@ -1108,6 +1523,7 @@ const DB = {
       const batch = writeBatch(db);
       for (const emp of chunk) {
         if (!emp.empCode) { results.fail++; results.errors.push({emp, reason:'사번 없음'}); continue; }
+        // 일괄 등록에서는 빈 필드는 저장 안 함 (merge true니까 기존값 유지)
         const clean = {};
         Object.keys(emp).forEach(k => {
           if (emp[k] !== undefined && emp[k] !== '' && emp[k] !== null) clean[k] = emp[k];
@@ -1147,6 +1563,105 @@ const DB = {
       count += chunk.length;
     }
     return count;
+  },
+  
+  // --- 검진 ---
+  async getAllExams(examType = null) {
+    let q = collection(db, COL.EXAMS);
+    if (examType) {
+      q = query(q, where('examType', '==', examType));
+    }
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+  
+  async getExamsByEmployee(empCode) {
+    const q = query(collection(db, COL.EXAMS), where('empCode', '==', String(empCode)));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+  
+  async saveExam(exam) {
+    const clean = {};
+    Object.keys(exam).forEach(k => {
+      if (exam[k] !== undefined && exam[k] !== '' && exam[k] !== null) clean[k] = exam[k];
+    });
+    clean.updatedAt = serverTimestamp();
+    
+    if (exam.id) {
+      const ref = doc(db, COL.EXAMS, exam.id);
+      await setDoc(ref, clean, { merge: true });
+      return exam.id;
+    } else {
+      clean.createdAt = serverTimestamp();
+      const ref = await addDoc(collection(db, COL.EXAMS), clean);
+      return ref.id;
+    }
+  },
+  
+  async deleteExam(examId) {
+    await deleteDoc(doc(db, COL.EXAMS, examId));
+  },
+  
+  async bulkSaveExams(exams, onProgress) {
+    const results = { success: 0, fail: 0, errors: [] };
+    const chunks = [];
+    for (let i = 0; i < exams.length; i += 400) chunks.push(exams.slice(i, i + 400));
+    
+    let done = 0;
+    for (const chunk of chunks) {
+      const batch = writeBatch(db);
+      for (const exam of chunk) {
+        try {
+          const clean = {};
+          Object.keys(exam).forEach(k => {
+            if (exam[k] !== undefined && exam[k] !== '' && exam[k] !== null) clean[k] = exam[k];
+          });
+          clean.updatedAt = serverTimestamp();
+          if (!exam.id) clean.createdAt = serverTimestamp();
+          
+          const ref = exam.id
+            ? doc(db, COL.EXAMS, exam.id)
+            : doc(collection(db, COL.EXAMS));
+          batch.set(ref, clean, { merge: true });
+          results.success++;
+        } catch (e) {
+          results.fail++;
+          results.errors.push({ exam, reason: e.message });
+        }
+      }
+      await batch.commit();
+      done += chunk.length;
+      if (onProgress) onProgress(done, exams.length);
+    }
+    return results;
+  },
+  
+  // --- 예방접종 ---
+  async getAllVaccinations() {
+    const snap = await getDocs(collection(db, COL.VACCINATIONS));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+  
+  async getVaccinationByEmployee(empCode) {
+    const ref = doc(db, COL.VACCINATIONS, String(empCode));
+    const snap = await getDoc(ref);
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+  
+  async saveVaccination(vacc) {
+    if (!vacc.empCode) throw new Error('사번 필수');
+    const clean = {};
+    Object.keys(vacc).forEach(k => {
+      if (vacc[k] !== undefined && vacc[k] !== null) clean[k] = vacc[k];
+    });
+    const ref = doc(db, COL.VACCINATIONS, String(vacc.empCode));
+    await setDoc(ref, { ...clean, updatedAt: serverTimestamp() }, { merge: true });
+    return vacc.empCode;
+  },
+  
+  async deleteVaccination(empCode) {
+    await deleteDoc(doc(db, COL.VACCINATIONS, String(empCode)));
   },
   
   async countCollection(colName) {
@@ -1225,6 +1740,19 @@ const FIELD_SYNONYMS = {
   phone: ['연락처','전화번호','휴대폰','핸드폰','phone','mobile','HP'],
   birthDate: ['생년월일','생일','birthdate','DOB'],
   hazard: ['유해인자','유해요인','노출인자','대상유해인자'],
+  // 검진 관련 필드
+  examDate: ['검진일','검진일자','검사일','수검일','건강검진일','채용검진일','특수건강검진일','일반건강검진','2026년 일반건강검진','2025년 일반건강검진'],
+  judgment: ['판정','종합판정','검진판정','결과판정','판정결과','치용검진결과','채용검진결과','검진결과'],
+  examInstitution: ['검진기관','특검기관','의료기관','검사기관'],
+  // 세부 수치
+  detail_hemoglobin: ['혈색소','헤모글로빈','Hb','hemoglobin'],
+  detail_bp: ['혈압','BP','blood_pressure'],
+  detail_liver: ['간수치','AST','ALT','AST/ALT','간기능'],
+  detail_metabolic: ['대사증후군','대사','metabolic'],
+  detail_protein: ['뇨단백','단백뇨','proteinuria'],
+  detail_blood: ['요잠혈','혈뇨','hematuria'],
+  detail_mskd: ['근골격계','근골격계질환','근골격계\\n질환'],
+  detail_other: ['기타','특이사항','비고'],
 };
 
 const Import = {
@@ -1338,6 +1866,8 @@ const Employees = {
       this.applyFilters();
       this.renderStats();
       this.renderDepartmentFilter();
+      // 다른 모듈 캐시 무효화 (직원 정보 변경 반영)
+      if (typeof Exams !== 'undefined') Exams._vaccCache = null;
     } catch (e) {
       console.error(e);
       toast('직원 목록 조회 실패: ' + e.message, 'error');
@@ -1549,7 +2079,7 @@ const Employees = {
     if (current) select.value = current;
   },
   
-  showDetail(empCode) {
+  async showDetail(empCode) {
     const emp = this.list.find(e => String(e.empCode) === String(empCode));
     if (!emp) return;
     
@@ -1566,9 +2096,10 @@ const Employees = {
     }
     
     Modal.open({
+      wide: true,
       title: `${emp.name} (${emp.empCode})`,
       body: `
-        <dl class="detail-grid">
+        <dl class="detail-grid" style="margin-bottom:20px">
           <dt>사번</dt><dd style="font-family:monospace">${esc(emp.empCode)}</dd>
           <dt>이름</dt><dd>${esc(emp.name || '-')}</dd>
           <dt>성별</dt><dd>${esc(emp.gender || '-')}</dd>
@@ -1582,21 +2113,121 @@ const Employees = {
           <dt>이메일</dt><dd>${esc(emp.email || '-')}</dd>
           <dt>연락처</dt><dd>${esc(emp.phone || '-')}</dd>
         </dl>
+        
+        <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:10px">🩺 검진·접종 이력</div>
+          <div id="empTimeline" style="font-size:12px;color:var(--text-3)">조회 중…</div>
+        </div>
       `,
       actions: [
+        { text: '검진 추가', variant: 'outline', handler: () => { 
+          Modal.close(); 
+          // 직원 선택 상태로 검진 모달 오픈
+          Router.show('exams').then(() => {
+            setTimeout(() => {
+              Exams.currentType = 'preemployment';
+              Exams.showEditModal(null);
+              setTimeout(() => {
+                // 직원 미리 선택
+                const info = $('#selectedEmpInfo');
+                const box = $('#empSearchBox');
+                if (info) {
+                  info.innerHTML = Exams._renderSelectedEmp(emp);
+                  info.style.display = 'block';
+                  info.dataset.emp = emp.empCode;
+                  if (box?.parentElement) box.parentElement.style.display = 'none';
+                }
+              }, 150);
+            }, 300);
+          });
+        }},
+        { text: '예방접종', variant: 'outline', handler: () => {
+          Modal.close();
+          Vaccinations.showEditModal(emp.empCode);
+        }},
         { text: '수정', variant: 'primary', handler: () => { Modal.close(); this.showEditModal(empCode); } },
         { text: '닫기', variant: 'outline', handler: () => Modal.close() },
       ]
     });
+    
+    // 타임라인 비동기 로드
+    try {
+      const [exams, vacc] = await Promise.all([
+        DB.getExamsByEmployee(emp.empCode),
+        DB.getVaccinationByEmployee(emp.empCode)
+      ]);
+      
+      const items = [];
+      for (const e of exams) {
+        items.push({
+          date: e.examDate,
+          title: `${EXAM_TYPE_LABELS[e.examType] || e.examType} · 판정 ${e.judgment || '-'}`,
+          desc: e.institution ? `검진기관: ${e.institution}` : '',
+          needCounsel: e.needCounsel
+        });
+      }
+      if (vacc) {
+        for (const [type, info] of Object.entries(VACC_TYPES)) {
+          const t = vacc[type];
+          if (!t) continue;
+          for (let i = 1; i <= info.doses; i++) {
+            if (t[`dose${i}`]) {
+              items.push({
+                date: formatDate(t[`dose${i}`]),
+                title: `💉 ${info.label} ${i}차 접종`,
+                desc: ''
+              });
+            }
+          }
+          if (t.antibody) {
+            items.push({
+              date: '-',
+              title: `🧪 ${info.label} 항체: ${t.antibody}`,
+              desc: ''
+            });
+          }
+        }
+      }
+      
+      items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      
+      const timelineEl = document.querySelector('#empTimeline');
+      if (!timelineEl) return;
+      
+      if (items.length === 0) {
+        timelineEl.innerHTML = '<div style="padding:10px 0;color:var(--text-3)">등록된 검진·접종 이력이 없습니다</div>';
+      } else {
+        timelineEl.innerHTML = '<div class="timeline">' + items.map(item => `
+          <div class="timeline-item">
+            <div class="date">${esc(item.date || '-')}</div>
+            <div class="title">${esc(item.title)} ${item.needCounsel ? '<span class="badge warn" style="margin-left:4px">상담필요</span>' : ''}</div>
+            ${item.desc ? `<div class="desc">${esc(item.desc)}</div>` : ''}
+          </div>
+        `).join('') + '</div>';
+      }
+    } catch (e) {
+      const timelineEl = document.querySelector('#empTimeline');
+      if (timelineEl) timelineEl.innerHTML = '<div style="color:var(--danger)">이력 조회 실패</div>';
+    }
   },
   
   showEditModal(empCode) {
     const emp = empCode ? this.list.find(e => String(e.empCode) === String(empCode)) : {};
     const isNew = !empCode;
+    const isCurrentlyResigned = emp && (emp.resignDate || emp.status === 'resigned');
+    const isCurrentlyLeave = emp && emp.status === 'leave';
     
     Modal.open({
       title: isNew ? '신규 직원 등록' : `직원 정보 수정 - ${emp.name}`,
       body: `
+        ${(isCurrentlyResigned || isCurrentlyLeave) ? `
+        <div class="result-banner warn" style="margin-bottom:14px;font-size:12px">
+          💡 <strong>${isCurrentlyLeave ? '휴직자' : '퇴사자'}를 재직자로 전환</strong>하시려면:
+          ${isCurrentlyLeave 
+            ? '아래 <strong>"재직 상태"</strong> 드롭다운에서 <strong>"재직"</strong> 선택 후 저장' 
+            : '아래 <strong>"퇴사일"</strong> 필드를 <strong>완전히 비우고</strong> 저장 (아이콘 X 클릭)'}
+        </div>
+        ` : ''}
         <form id="empForm">
           <div class="form-grid">
             <div class="field">
@@ -1636,8 +2267,15 @@ const Employees = {
               <input type="date" name="transferDate" value="${formatDate(emp.transferDate)}">
             </div>
             <div class="field">
-              <label>퇴사일</label>
-              <input type="date" name="resignDate" value="${formatDate(emp.resignDate)}">
+              <label>재직 상태</label>
+              <select name="status">
+                <option value="" ${!emp.status || emp.status==='active' ? 'selected':''}>재직</option>
+                <option value="leave" ${emp.status==='leave'?'selected':''}>휴직</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>퇴사일 (비우면 재직으로 전환)</label>
+              <input type="date" name="resignDate" value="${emp.resignDate === '9999-12-31' ? '' : formatDate(emp.resignDate)}">
             </div>
             <div class="field">
               <label>이메일</label>
@@ -1677,8 +2315,19 @@ const Employees = {
             if (!form.checkValidity()) { form.reportValidity(); return; }
             const fd = new FormData(form);
             const data = Object.fromEntries(fd.entries());
-            // 빈 값은 제거
-            Object.keys(data).forEach(k => { if (!data[k]) delete data[k]; });
+            
+            // 빈 문자열은 null로 변환 (DB에서 삭제될 수 있게)
+            Object.keys(data).forEach(k => {
+              if (data[k] === '') data[k] = null;
+            });
+            
+            // 재직 상태 전환 로직
+            // status가 'leave'(휴직)면 resignDate는 비우지 않음
+            // status가 ''(재직)이면 resignDate도 비워야 완전한 재직 상태
+            if (data.status === null || data.status === '') {
+              // 재직 상태 → 퇴사 관련 필드 모두 정리
+              // 사용자가 퇴사일을 남겨뒀다면 그대로 유지 (오타 방지용)
+            }
             
             showLoading('저장 중…');
             try {
@@ -1687,6 +2336,7 @@ const Employees = {
               Modal.close();
               this.loadAll();
             } catch (e) {
+              console.error(e);
               toast('저장 실패: ' + e.message, 'error');
             } finally { hideLoading(); }
           }
@@ -1903,6 +2553,1208 @@ function fieldLabel(field) {
   };
   return labels[field] || field;
 }
+
+
+// ============================================================
+// 8. 건강검진 (Exams) 네임스페이스
+// ============================================================
+
+const EXAM_TYPE_LABELS = {
+  preemployment: '채용검진',
+  general: '일반검진',
+  special: '특수검진'
+};
+
+const Exams = {
+  list: [],
+  filteredList: [],
+  currentType: 'preemployment',
+  currentPage: 1,
+  pageSize: 50,
+  
+  async loadAll() {
+    showLoading('검진 기록 불러오는 중…');
+    try {
+      this.list = await DB.getAllExams();
+      // 최신순 정렬
+      this.list.sort((a, b) => (b.examDate || '').localeCompare(a.examDate || ''));
+      this.applyFilters();
+      this.renderStats();
+      this.renderYearFilter();
+    } catch (e) {
+      console.error(e);
+      toast('검진 기록 조회 실패: ' + e.message, 'error');
+    } finally { hideLoading(); }
+  },
+  
+  applyFilters() {
+    const q = normalize($('#examSearchInput').value);
+    const judgment = $('#filterJudgment').value;
+    const year = $('#filterExamYear').value;
+    
+    this.filteredList = this.list.filter(e => {
+      // 탭 필터
+      if (e.examType !== this.currentType) return false;
+      
+      // 판정 필터 (첫 글자 기준)
+      if (judgment) {
+        const cat = (e.judgmentCategory || '').charAt(0);
+        if (cat !== judgment) return false;
+      }
+      
+      // 연도 필터
+      if (year && String(e.examYear) !== year) return false;
+      
+      // 검색어
+      if (q) {
+        const hay = normalize(`${e.empCode} ${e.empName} ${e.department}`);
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    
+    this.currentPage = 1;
+    this.renderTable();
+  },
+  
+  async renderTable() {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    const pageData = this.filteredList.slice(start, end);
+    
+    if (this.filteredList.length === 0) {
+      $('#examTableBody').innerHTML = '';
+      $('#examEmptyState').style.display = 'block';
+      $('#examPagination').style.display = 'none';
+      return;
+    }
+    $('#examEmptyState').style.display = 'none';
+    
+    // 감염병 항체 정보를 위해 예방접종 데이터도 조인 (캐시 활용)
+    if (!this._vaccCache) {
+      try {
+        const allVaccs = await DB.getAllVaccinations();
+        this._vaccCache = new Map(allVaccs.map(v => [String(v.empCode), v]));
+      } catch { this._vaccCache = new Map(); }
+    }
+    
+    const html = pageData.map(e => {
+      const cat = e.judgmentCategory || '';
+      const judgBadge = cat 
+        ? `<span class="badge judg-${cat}">${e.judgmentLabel || cat}</span>`
+        : '<span style="color:var(--text-3)">-</span>';
+      
+      const vacc = this._vaccCache.get(String(e.empCode));
+      const antibodyHtml = this.currentType === 'preemployment' ? renderAntibodyPills(vacc) : '-';
+      
+      const counselBadge = e.needCounsel 
+        ? '<span class="badge warn">⚠️ 필요</span>'
+        : '<span style="color:var(--text-3)">-</span>';
+      
+      return `
+        <tr data-id="${esc(e.id)}">
+          <td style="font-family:monospace;font-size:12px">${esc(e.empCode)}</td>
+          <td><strong>${esc(e.empName || '-')}</strong></td>
+          <td>${esc(e.department || '-')}</td>
+          <td style="font-family:monospace;font-size:12px">${esc(e.examDate || '-')}</td>
+          <td>${judgBadge}</td>
+          <td>${antibodyHtml}</td>
+          <td>${counselBadge}</td>
+          <td style="text-align:right">
+            <button class="btn btn-outline btn-sm" data-action="edit" data-id="${esc(e.id)}">수정</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    $('#examTableBody').innerHTML = html;
+    
+    // 페이지네이션
+    this.renderPagination();
+    
+    // 이벤트 바인딩
+    $$('#examTableBody tr').forEach(tr => {
+      tr.addEventListener('click', (ev) => {
+        if (ev.target.closest('button')) return;
+        Exams.showEditModal(tr.dataset.id);
+      });
+    });
+    $$('#examTableBody button[data-action="edit"]').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        Exams.showEditModal(btn.dataset.id);
+      });
+    });
+  },
+  
+  renderPagination() {
+    const total = this.filteredList.length;
+    const totalPages = Math.ceil(total / this.pageSize);
+    const bar = $('#examPagination');
+    
+    if (totalPages <= 1) { bar.style.display = 'none'; return; }
+    bar.style.display = 'flex';
+    
+    const start = (this.currentPage - 1) * this.pageSize + 1;
+    const end = Math.min(start + this.pageSize - 1, total);
+    $('#examPageInfo').textContent = `${start}–${end} / ${total.toLocaleString()}건`;
+    
+    const btns = [];
+    btns.push(`<button data-page="${this.currentPage - 1}" ${this.currentPage === 1 ? 'disabled' : ''}>‹</button>`);
+    for (let p = Math.max(1, this.currentPage - 3); p <= Math.min(totalPages, this.currentPage + 3); p++) {
+      btns.push(`<button data-page="${p}" class="${p === this.currentPage ? 'active' : ''}">${p}</button>`);
+    }
+    btns.push(`<button data-page="${this.currentPage + 1}" ${this.currentPage === totalPages ? 'disabled' : ''}>›</button>`);
+    
+    $('#examPageButtons').innerHTML = btns.join('');
+    $$('#examPageButtons button[data-page]').forEach(b => {
+      b.addEventListener('click', () => {
+        const p = parseInt(b.dataset.page);
+        if (p >= 1 && p <= totalPages) {
+          this.currentPage = p;
+          this.renderTable();
+        }
+      });
+    });
+  },
+  
+  renderStats() {
+    const preemp = this.list.filter(e => e.examType === 'preemployment').length;
+    const general = this.list.filter(e => e.examType === 'general').length;
+    const special = this.list.filter(e => e.examType === 'special').length;
+    const needCounsel = this.list.filter(e => e.needCounsel).length;
+    
+    $('#examStats').innerHTML = `
+      <div class="stat accent">
+        <div class="label">채용검진</div>
+        <div class="value">${preemp.toLocaleString()}</div>
+        <div class="delta">전체 기록</div>
+      </div>
+      <div class="stat">
+        <div class="label">일반검진</div>
+        <div class="value">${general.toLocaleString()}</div>
+        <div class="delta">Phase 2-2</div>
+      </div>
+      <div class="stat">
+        <div class="label">특수검진</div>
+        <div class="value">${special.toLocaleString()}</div>
+        <div class="delta">Phase 2-3</div>
+      </div>
+      <div class="stat warn">
+        <div class="label">상담 필요</div>
+        <div class="value">${needCounsel.toLocaleString()}</div>
+        <div class="delta">C/D/R 판정자</div>
+      </div>
+    `;
+  },
+  
+  renderYearFilter() {
+    const years = [...new Set(this.list.map(e => e.examYear).filter(Boolean))].sort((a, b) => b - a);
+    const select = $('#filterExamYear');
+    const current = select.value;
+    select.innerHTML = '<option value="">전체 연도</option>' + 
+      years.map(y => `<option value="${y}">${y}년</option>`).join('');
+    if (current) select.value = current;
+  },
+  
+  switchTab(examType) {
+    this.currentType = examType;
+    $$('.exam-tab').forEach(t => t.classList.toggle('active', t.dataset.examType === examType));
+    this.applyFilters();
+  },
+  
+  /**
+   * 검진 입력/수정 모달
+   */
+  async showEditModal(examId) {
+    let exam = { examType: this.currentType };
+    let selectedEmp = null;
+    
+    if (examId) {
+      exam = this.list.find(e => e.id === examId);
+      if (!exam) return;
+      selectedEmp = await DB.getEmployee(exam.empCode);
+    }
+    
+    const isNew = !examId;
+    const isPreemp = exam.examType === 'preemployment';
+    
+    Modal.open({
+      wide: true,
+      title: isNew ? `${EXAM_TYPE_LABELS[exam.examType]} 신규 입력` : `${EXAM_TYPE_LABELS[exam.examType]} 수정 - ${exam.empName || ''}`,
+      body: `
+        <form id="examForm">
+          <!-- 직원 선택 영역 -->
+          <div class="card" style="margin-bottom:14px;background:var(--surface-2)">
+            <div class="card-body">
+              ${isNew ? `
+                <div class="field" style="margin-bottom:10px">
+                  <label>직원 검색 *</label>
+                  <input type="text" id="empSearchBox" placeholder="이름 또는 사번 입력 후 선택…" autocomplete="off">
+                  <div id="empSearchResults" style="max-height:180px;overflow-y:auto;margin-top:6px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);display:none"></div>
+                </div>
+              ` : ''}
+              <div id="selectedEmpInfo" style="${selectedEmp ? '' : 'display:none'}">
+                ${selectedEmp ? this._renderSelectedEmp(selectedEmp) : ''}
+              </div>
+            </div>
+          </div>
+          
+          <!-- 검진 기본 정보 -->
+          <div class="form-grid">
+            <div class="field">
+              <label>검진일 *</label>
+              <input type="date" name="examDate" required value="${esc(exam.examDate || '')}">
+            </div>
+            <div class="field">
+              <label>검진기관</label>
+              <input name="institution" value="${esc(exam.institution || '')}" placeholder="예: 부민병원">
+            </div>
+            <div class="field full">
+              <label>종합판정 *</label>
+              <select name="judgment" required id="judgmentSelect">
+                <option value="">선택…</option>
+                <option value="A" ${exam.judgment==='A'?'selected':''}>A - 정상</option>
+                <option value="B" ${exam.judgment==='B'?'selected':''}>B - 경계</option>
+                <option value="C1" ${exam.judgment==='C1'?'selected':''}>C₁ - 일반질병 요관찰자</option>
+                <option value="C2" ${exam.judgment==='C2'?'selected':''}>C₂ - 직업병 요관찰자</option>
+                <option value="D1" ${exam.judgment==='D1'?'selected':''}>D₁ - 일반질병 유소견자</option>
+                <option value="D2" ${exam.judgment==='D2'?'selected':''}>D₂ - 직업병 유소견자</option>
+                <option value="R" ${exam.judgment==='R'?'selected':''}>R - 재검사</option>
+              </select>
+            </div>
+          </div>
+          
+          ${isPreemp ? `
+          <!-- 채용검진 전용: 감염병 항체 + 세부 결과 -->
+          <div class="collapsible ${(exam.detailResults || exam.needCounsel) ? 'open' : ''}" id="detailCollapsible">
+            <div class="collapsible-header">
+              <span>🔍 유소견 세부 결과 (C/D/R 판정 시 자동 열림)</span>
+              <span class="chevron">▼</span>
+            </div>
+            <div class="collapsible-body">
+              <div class="form-grid">
+                <div class="field">
+                  <label>혈색소</label>
+                  <input name="detail_hemoglobin" value="${esc(exam.detailResults?.hemoglobin || '')}" placeholder="예: 12.5 g/dL">
+                </div>
+                <div class="field">
+                  <label>혈압</label>
+                  <input name="detail_bp" value="${esc(exam.detailResults?.bp || '')}" placeholder="예: 120/80">
+                </div>
+                <div class="field">
+                  <label>간수치 (AST/ALT)</label>
+                  <input name="detail_liver" value="${esc(exam.detailResults?.liver || '')}" placeholder="예: 25/30">
+                </div>
+                <div class="field">
+                  <label>대사증후군</label>
+                  <input name="detail_metabolic" value="${esc(exam.detailResults?.metabolic || '')}">
+                </div>
+                <div class="field">
+                  <label>뇨단백</label>
+                  <input name="detail_protein" value="${esc(exam.detailResults?.protein || '')}">
+                </div>
+                <div class="field">
+                  <label>요잠혈</label>
+                  <input name="detail_blood" value="${esc(exam.detailResults?.blood || '')}">
+                </div>
+                <div class="field full">
+                  <label>근골격계 질환</label>
+                  <input name="detail_mskd" value="${esc(exam.detailResults?.mskd || '')}">
+                </div>
+                <div class="field full">
+                  <label>기타 특이사항</label>
+                  <textarea name="detail_other" rows="2">${esc(exam.detailResults?.other || '')}</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+          
+          <div class="field" style="margin-top:14px">
+            <label>검진 소견 / 메모</label>
+            <textarea name="note" rows="3" placeholder="종합 소견, 추가 정보, 후속 조치 등">${esc(exam.note || '')}</textarea>
+          </div>
+        </form>
+      `,
+      actions: [
+        ...(isNew ? [] : [{
+          text: '🗑 삭제', variant: 'danger',
+          handler: async () => {
+            if (!confirm(`${exam.empName} (${exam.examDate}) 검진 기록을 삭제합니다. 계속?`)) return;
+            showLoading('삭제 중…');
+            try {
+              await DB.deleteExam(exam.id);
+              toast('삭제 완료', 'success');
+              Modal.close();
+              this._vaccCache = null;
+              this.loadAll();
+              CounselQueue.loadAll();
+            } catch (e) { toast('삭제 실패: ' + e.message, 'error'); }
+            finally { hideLoading(); }
+          }
+        }]),
+        { text: '취소', variant: 'outline', handler: () => Modal.close() },
+        {
+          text: '저장', variant: 'accent',
+          handler: () => this._handleExamSave(examId, selectedEmp)
+        }
+      ]
+    });
+    
+    // 직원 검색 바인딩 (신규일 때)
+    if (isNew) this._bindEmpSearch();
+    
+    // 판정 변경 시 유소견 섹션 자동 열기
+    const judgSelect = $('#judgmentSelect');
+    if (judgSelect) {
+      judgSelect.addEventListener('change', () => {
+        const cat = classifyJudgment(judgSelect.value);
+        const col = $('#detailCollapsible');
+        if (col && cat.needCounsel) col.classList.add('open');
+      });
+    }
+    
+    // 접기/펼치기 바인딩
+    $$('.collapsible-header').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+    });
+  },
+  
+  _renderSelectedEmp(emp) {
+    return `
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px">${esc(emp.name)} <span style="color:var(--text-3);font-weight:400;font-family:monospace;font-size:12px">${esc(emp.empCode)}</span></div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:2px">
+            ${esc(emp.department || '-')} · ${esc(emp.jobTitle || '-')} · 입사 ${formatDate(emp.hireDate) || '-'}
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" id="btnChangeEmp">변경</button>
+      </div>
+    `;
+  },
+  
+  _bindEmpSearch() {
+    const box = $('#empSearchBox');
+    const results = $('#empSearchResults');
+    if (!box) return;
+    
+    let searchTimeout;
+    box.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      const q = normalize(box.value);
+      if (!q || q.length < 1) {
+        results.style.display = 'none';
+        return;
+      }
+      searchTimeout = setTimeout(() => {
+        const matches = Employees.list
+          .filter(e => !e.resignDate) // 재직자만
+          .filter(e => normalize(`${e.empCode} ${e.name} ${e.department}`).includes(q))
+          .slice(0, 20);
+        
+        if (matches.length === 0) {
+          results.innerHTML = '<div style="padding:10px;color:var(--text-3);font-size:12px">검색 결과 없음</div>';
+        } else {
+          results.innerHTML = matches.map(e => `
+            <div class="emp-result-item" data-emp="${esc(e.empCode)}" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px">
+              <strong>${esc(e.name)}</strong>
+              <span style="font-family:monospace;color:var(--text-3);font-size:11px;margin-left:6px">${esc(e.empCode)}</span>
+              <span style="color:var(--text-2);margin-left:8px">${esc(e.department||'')} · ${esc(e.jobTitle||'')}</span>
+            </div>
+          `).join('');
+          
+          $$('.emp-result-item').forEach(item => {
+            item.addEventListener('mouseenter', () => item.style.background = 'var(--primary-light)');
+            item.addEventListener('mouseleave', () => item.style.background = '');
+            item.addEventListener('click', () => {
+              const emp = Employees.list.find(e => String(e.empCode) === item.dataset.emp);
+              if (emp) {
+                box.value = '';
+                results.style.display = 'none';
+                box.parentElement.style.display = 'none';
+                const info = $('#selectedEmpInfo');
+                info.innerHTML = this._renderSelectedEmp(emp);
+                info.style.display = 'block';
+                info.dataset.emp = emp.empCode;
+                $('#btnChangeEmp').addEventListener('click', () => {
+                  info.style.display = 'none';
+                  info.dataset.emp = '';
+                  box.parentElement.style.display = 'block';
+                  box.focus();
+                });
+              }
+            });
+          });
+        }
+        results.style.display = 'block';
+      }, 150);
+    });
+    
+    // 외부 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+      if (!box.parentElement.contains(e.target)) results.style.display = 'none';
+    });
+  },
+  
+  async _handleExamSave(examId, originalEmp) {
+    const form = $('#examForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    
+    // 직원 선택 확인
+    let empCode = originalEmp?.empCode;
+    let empData = originalEmp;
+    
+    if (!empCode) {
+      const info = $('#selectedEmpInfo');
+      empCode = info?.dataset?.emp;
+      if (!empCode) {
+        toast('직원을 먼저 선택해주세요', 'warn');
+        return;
+      }
+      empData = Employees.list.find(e => String(e.empCode) === String(empCode));
+    }
+    
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd.entries());
+    
+    const judgment = data.judgment;
+    const classification = classifyJudgment(judgment);
+    
+    // 세부 결과 수집
+    const detailResults = {};
+    ['hemoglobin','bp','liver','metabolic','protein','blood','mskd','other'].forEach(k => {
+      const v = data[`detail_${k}`];
+      if (v) detailResults[k] = v;
+    });
+    
+    const exam = {
+      examType: this.currentType,
+      empCode: String(empCode),
+      empName: empData?.name || '',
+      department: empData?.department || '',
+      jobTitle: empData?.jobTitle || '',
+      examDate: data.examDate,
+      examYear: parseInt(data.examDate?.substring(0, 4)) || new Date().getFullYear(),
+      institution: data.institution || '',
+      judgment: judgment,
+      judgmentCategory: classification.category,
+      judgmentLabel: classification.label,
+      needCounsel: classification.needCounsel,
+      note: data.note || ''
+    };
+    
+    if (Object.keys(detailResults).length > 0) {
+      exam.detailResults = detailResults;
+    }
+    
+    if (examId) exam.id = examId;
+    
+    showLoading('저장 중…');
+    try {
+      await DB.saveExam(exam);
+      toast('저장 완료', 'success');
+      Modal.close();
+      this._vaccCache = null;
+      await this.loadAll();
+      await CounselQueue.loadAll();
+    } catch (e) {
+      toast('저장 실패: ' + e.message, 'error');
+    } finally { hideLoading(); }
+  },
+  
+  exportToExcel() {
+    if (this.filteredList.length === 0) {
+      toast('내보낼 데이터가 없습니다', 'warn');
+      return;
+    }
+    const data = this.filteredList.map(e => ({
+      '사번': e.empCode,
+      '이름': e.empName,
+      '부서': e.department || '',
+      '직무': e.jobTitle || '',
+      '검진종류': EXAM_TYPE_LABELS[e.examType] || e.examType,
+      '검진일': e.examDate,
+      '검진기관': e.institution || '',
+      '종합판정': e.judgment,
+      '상담필요': e.needCounsel ? 'Y' : 'N',
+      '혈색소': e.detailResults?.hemoglobin || '',
+      '혈압': e.detailResults?.bp || '',
+      '간수치': e.detailResults?.liver || '',
+      '대사증후군': e.detailResults?.metabolic || '',
+      '뇨단백': e.detailResults?.protein || '',
+      '요잠혈': e.detailResults?.blood || '',
+      '근골격계': e.detailResults?.mskd || '',
+      '기타': e.detailResults?.other || '',
+      '소견': e.note || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, EXAM_TYPE_LABELS[this.currentType]);
+    const today = formatDate(new Date());
+    XLSX.writeFile(wb, `부민_${EXAM_TYPE_LABELS[this.currentType]}_${today}.xlsx`);
+    toast('엑셀 다운로드 완료', 'success');
+  },
+  
+  /**
+   * 엑셀 일괄 업로드 모달
+   */
+  async showBulkUpload() {
+    Modal.open({
+      wide: true,
+      title: `${EXAM_TYPE_LABELS[this.currentType]} 엑셀 일괄 업로드`,
+      body: `
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:14px">
+          엑셀에 <strong>사번, 검진일, 판정</strong> 컬럼이 필수로 있어야 합니다. 헤더 이름은 자동 인식됩니다.
+        </div>
+        <input type="file" id="examFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+        <div class="file-drop" id="examFileDrop">
+          <div class="big-icon">📊</div>
+          <div class="hint"><strong>엑셀 파일을 드래그</strong>하거나 <strong>클릭</strong>해서 선택</div>
+          <div class="sub">검진 종류: ${EXAM_TYPE_LABELS[this.currentType]}</div>
+        </div>
+        <div id="examBulkResult" style="margin-top:14px"></div>
+      `,
+      actions: [
+        { text: '닫기', variant: 'outline', handler: () => Modal.close() }
+      ]
+    });
+    
+    const drop = $('#examFileDrop');
+    const input = $('#examFileInput');
+    Upload.setupDropZone(drop, input, (f) => this._handleBulkFile(f));
+  },
+  
+  async _handleBulkFile(file) {
+    showLoading('파일 분석 중…');
+    try {
+      const sheets = await Import.parseFile(file);
+      const firstSheet = sheets[Object.keys(sheets)[0]];
+      const analysis = Import.analyzeSheet(firstSheet);
+      
+      // 필수 필드 체크
+      const hasEmpCode = Object.values(analysis.mapping).includes('empCode');
+      const hasExamDate = Object.values(analysis.mapping).includes('examDate');
+      
+      if (!hasEmpCode) {
+        $('#examBulkResult').innerHTML = `
+          <div class="result-banner error">
+            <strong>⚠️ 사번 컬럼을 찾을 수 없습니다.</strong><br>
+            헤더에 '사번', '사원코드', '사원번호' 중 하나가 있어야 합니다.
+          </div>
+        `;
+        return;
+      }
+      
+      const { records } = Import.applyMapping(analysis.dataRows, analysis.mapping, {
+        examType: this.currentType
+      });
+      
+      if (records.length === 0) {
+        $('#examBulkResult').innerHTML = `
+          <div class="result-banner error">
+            저장 가능한 데이터가 없습니다 (사번 누락).
+          </div>
+        `;
+        return;
+      }
+      
+      // 직원 매칭 및 판정 분류
+      const empMap = new Map(Employees.list.map(e => [String(e.empCode), e]));
+      const exams = [];
+      const unregistered = [];
+      
+      for (const r of records) {
+        const emp = empMap.get(String(r.empCode));
+        if (!emp) {
+          unregistered.push(r);
+          continue;
+        }
+        
+        const classification = classifyJudgment(r.judgment);
+        const exam = {
+          examType: this.currentType,
+          empCode: String(r.empCode),
+          empName: emp.name || '',
+          department: emp.department || '',
+          jobTitle: emp.jobTitle || '',
+          examDate: r.examDate || '',
+          examYear: r.examDate ? parseInt(String(r.examDate).substring(0, 4)) : null,
+          institution: r.examInstitution || '',
+          judgment: r.judgment || '',
+          judgmentCategory: classification.category,
+          judgmentLabel: classification.label,
+          needCounsel: classification.needCounsel
+        };
+        exams.push(exam);
+      }
+      
+      // 확인 메시지
+      $('#examBulkResult').innerHTML = `
+        <div class="result-banner ${unregistered.length ? 'warn' : 'success'}">
+          <strong>분석 완료</strong><br>
+          저장 가능: <strong>${exams.length.toLocaleString()}건</strong>
+          ${unregistered.length ? `<br>미등록 직원 제외: ${unregistered.length}건` : ''}
+        </div>
+        <button class="btn btn-accent" id="btnConfirmBulkExam" style="margin-top:10px">
+          ✓ ${exams.length.toLocaleString()}건 저장
+        </button>
+      `;
+      
+      $('#btnConfirmBulkExam').addEventListener('click', async () => {
+        if (!confirm(`${exams.length.toLocaleString()}건의 ${EXAM_TYPE_LABELS[this.currentType]} 기록을 저장합니다. 계속?`)) return;
+        showLoading('저장 중…');
+        try {
+          const result = await DB.bulkSaveExams(exams, (done, total) => {
+            $('#loadingText').textContent = `저장 중… (${done}/${total})`;
+          });
+          $('#examBulkResult').innerHTML = `
+            <div class="result-banner success">
+              <div class="count">✓ 저장 완료</div>
+              성공 ${result.success.toLocaleString()}건 · 실패 ${result.fail}건
+            </div>
+          `;
+          toast(`${result.success.toLocaleString()}건 저장 완료`, 'success');
+          this._vaccCache = null;
+          await this.loadAll();
+          await CounselQueue.loadAll();
+          setTimeout(() => Modal.close(), 2000);
+        } catch (e) {
+          toast('저장 실패: ' + e.message, 'error');
+        } finally { hideLoading(); }
+      });
+    } catch (e) {
+      console.error(e);
+      $('#examBulkResult').innerHTML = `
+        <div class="result-banner error">
+          <strong>오류:</strong> ${esc(e.message)}
+        </div>
+      `;
+    } finally { hideLoading(); }
+  }
+};
+
+
+// ============================================================
+// 9. 예방접종 (Vaccinations) 네임스페이스
+// ============================================================
+
+const VACC_TYPES = {
+  hepatitisB: { label: 'B형간염', doses: 3, hasAntibody: true },
+  hepatitisA: { label: 'A형간염', doses: 2, hasAntibody: true },
+  varicella:  { label: '수두',   doses: 0, hasAntibody: true },
+  measles:    { label: '홍역',   doses: 2, hasAntibody: true },
+};
+
+const Vaccinations = {
+  list: [],
+  filteredList: [],
+  currentType: 'hepatitisB',
+  currentPage: 1,
+  pageSize: 50,
+  
+  async loadAll() {
+    showLoading('접종 기록 불러오는 중…');
+    try {
+      this.list = await DB.getAllVaccinations();
+      this.applyFilters();
+      this.renderStats();
+    } catch (e) {
+      console.error(e);
+      toast('접종 기록 조회 실패: ' + e.message, 'error');
+    } finally { hideLoading(); }
+  },
+  
+  applyFilters() {
+    const q = normalize($('#vaccSearchInput').value);
+    const status = $('#filterVaccStatus').value;
+    this.currentType = $('#filterVaccType').value || 'hepatitisB';
+    
+    // 직원 정보와 조인
+    const empMap = new Map(Employees.list.map(e => [String(e.empCode), e]));
+    
+    this.filteredList = this.list.filter(v => {
+      const emp = empMap.get(String(v.empCode));
+      if (!emp) return false;
+      if (emp.resignDate) return false; // 재직자만
+      
+      const t = v[this.currentType];
+      
+      // 상태 필터
+      if (status === 'antibody-positive' && t?.antibody !== '양성') return false;
+      if (status === 'antibody-negative' && t?.antibody !== '음성') return false;
+      if (status === 'complete') {
+        const total = VACC_TYPES[this.currentType].doses;
+        const done = this._countDoses(t);
+        if (total && done < total && t?.antibody !== '양성') return false;
+      }
+      if (status === 'partial') {
+        const total = VACC_TYPES[this.currentType].doses;
+        const done = this._countDoses(t);
+        if (!total || done === 0 || done >= total) return false;
+      }
+      if (status === 'none') {
+        if (this._countDoses(t) > 0 || t?.antibody) return false;
+      }
+      
+      // 검색어
+      if (q) {
+        const hay = normalize(`${v.empCode} ${emp.name} ${emp.department}`);
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    }).map(v => ({ ...v, _emp: empMap.get(String(v.empCode)) }));
+    
+    // 재직자 전체 표시 (접종 기록 없어도)
+    if (status === '' || status === 'none') {
+      const registered = new Set(this.filteredList.map(v => String(v.empCode)));
+      const activeEmps = Employees.list.filter(e => !e.resignDate && !registered.has(String(e.empCode)));
+      for (const emp of activeEmps) {
+        if (q && !normalize(`${emp.empCode} ${emp.name} ${emp.department}`).includes(q)) continue;
+        if (status === 'none' || status === '') {
+          this.filteredList.push({ empCode: emp.empCode, _emp: emp });
+        }
+      }
+    }
+    
+    this.filteredList.sort((a, b) => (a._emp?.name || '').localeCompare(b._emp?.name || '', 'ko'));
+    this.currentPage = 1;
+    this.renderTable();
+  },
+  
+  _countDoses(t) {
+    if (!t) return 0;
+    let n = 0;
+    for (let i = 1; i <= 3; i++) if (t[`dose${i}`]) n++;
+    return n;
+  },
+  
+  renderTable() {
+    const type = this.currentType;
+    const typeInfo = VACC_TYPES[type];
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    const pageData = this.filteredList.slice(start, end);
+    
+    $('#vaccCountBadge').textContent = `${this.filteredList.length}명`;
+    
+    if (this.filteredList.length === 0) {
+      $('#vaccTableBody').innerHTML = '';
+      $('#vaccEmptyState').style.display = 'block';
+      return;
+    }
+    $('#vaccEmptyState').style.display = 'none';
+    
+    // 테이블 헤더 구성
+    const doses = typeInfo.doses;
+    let headerCells = '<th>사번</th><th>이름</th><th>부서</th>';
+    for (let i = 1; i <= doses; i++) headerCells += `<th>${i}차 접종일</th>`;
+    if (typeInfo.hasAntibody) headerCells += '<th>항체</th>';
+    headerCells += '<th>상태</th><th></th>';
+    $('#vaccTableHead').innerHTML = `<tr>${headerCells}</tr>`;
+    
+    const html = pageData.map(v => {
+      const emp = v._emp;
+      const t = v[type] || {};
+      
+      let doseHtml = '';
+      for (let i = 1; i <= doses; i++) {
+        const d = t[`dose${i}`];
+        doseHtml += `<td style="font-family:monospace;font-size:12px">${d ? formatDate(d) : '<span style="color:var(--text-3)">—</span>'}</td>`;
+      }
+      
+      let antibodyHtml = '';
+      if (typeInfo.hasAntibody) {
+        const ab = t.antibody;
+        if (ab === '양성') antibodyHtml = '<td><span class="antibody-pill positive">양성(+)</span></td>';
+        else if (ab === '음성') antibodyHtml = '<td><span class="antibody-pill negative">음성(-)</span></td>';
+        else antibodyHtml = '<td><span style="color:var(--text-3);font-size:11px">미검사</span></td>';
+      }
+      
+      // 상태 판단
+      const doneCount = this._countDoses(t);
+      let statusBadge;
+      if (t.antibody === '양성') statusBadge = '<span class="badge active">완료</span>';
+      else if (t.antibody === '음성') statusBadge = '<span class="badge resigned">재접종 필요</span>';
+      else if (doses && doneCount >= doses) statusBadge = '<span class="badge active">접종 완료</span>';
+      else if (doneCount > 0) statusBadge = `<span class="badge warn">${doneCount}/${doses}차</span>`;
+      else statusBadge = '<span class="badge gray">미접종</span>';
+      
+      return `
+        <tr data-emp="${esc(v.empCode)}">
+          <td style="font-family:monospace;font-size:12px">${esc(v.empCode)}</td>
+          <td><strong>${esc(emp?.name || '-')}</strong></td>
+          <td>${esc(emp?.department || '-')}</td>
+          ${doseHtml}
+          ${antibodyHtml}
+          <td>${statusBadge}</td>
+          <td style="text-align:right">
+            <button class="btn btn-outline btn-sm" data-action="edit" data-emp="${esc(v.empCode)}">수정</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    $('#vaccTableBody').innerHTML = html;
+    
+    $$('#vaccTableBody button[data-action="edit"]').forEach(btn => {
+      btn.addEventListener('click', () => this.showEditModal(btn.dataset.emp));
+    });
+    $$('#vaccTableBody tr').forEach(tr => {
+      tr.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        this.showEditModal(tr.dataset.emp);
+      });
+    });
+  },
+  
+  renderStats() {
+    const empMap = new Map(Employees.list.map(e => [String(e.empCode), e]));
+    const activeEmps = Employees.list.filter(e => !e.resignDate);
+    const total = activeEmps.length;
+    
+    const stats = {};
+    for (const type of Object.keys(VACC_TYPES)) {
+      stats[type] = { complete: 0, partial: 0, none: 0 };
+    }
+    
+    for (const emp of activeEmps) {
+      const v = this.list.find(x => String(x.empCode) === String(emp.empCode));
+      for (const type of Object.keys(VACC_TYPES)) {
+        const t = v?.[type];
+        const doses = VACC_TYPES[type].doses;
+        const done = this._countDoses(t);
+        if (t?.antibody === '양성' || (doses && done >= doses)) stats[type].complete++;
+        else if (done > 0 || t?.antibody) stats[type].partial++;
+        else stats[type].none++;
+      }
+    }
+    
+    const cards = Object.entries(VACC_TYPES).map(([type, info]) => {
+      const s = stats[type];
+      const completeRate = total ? Math.round(s.complete / total * 100) : 0;
+      return `
+        <div class="stat">
+          <div class="label">${info.label}</div>
+          <div class="value">${s.complete.toLocaleString()}<span style="font-size:13px;color:var(--text-3);font-weight:500"> / ${total.toLocaleString()}</span></div>
+          <div class="delta">완료율 ${completeRate}% · 진행중 ${s.partial} · 미접종 ${s.none}</div>
+        </div>
+      `;
+    }).join('');
+    
+    $('#vaccStats').innerHTML = cards;
+  },
+  
+  async showEditModal(empCode) {
+    const emp = await DB.getEmployee(empCode);
+    if (!emp) { toast('직원 정보를 찾을 수 없습니다', 'error'); return; }
+    
+    const existing = await DB.getVaccinationByEmployee(empCode) || {};
+    
+    const typeForms = Object.entries(VACC_TYPES).map(([type, info]) => {
+      const t = existing[type] || {};
+      let doseFields = '';
+      for (let i = 1; i <= info.doses; i++) {
+        doseFields += `
+          <div class="field">
+            <label>${i}차 접종일</label>
+            <input type="date" name="${type}_dose${i}" value="${formatDate(t[`dose${i}`]) || ''}">
+          </div>
+        `;
+      }
+      const antibodyField = info.hasAntibody ? `
+        <div class="field">
+          <label>항체 검사</label>
+          <select name="${type}_antibody">
+            <option value="">미검사</option>
+            <option value="양성" ${t.antibody==='양성'?'selected':''}>양성(+)</option>
+            <option value="음성" ${t.antibody==='음성'?'selected':''}>음성(-)</option>
+          </select>
+        </div>
+      ` : '';
+      return `
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-header" style="background:var(--surface-2);padding:10px 14px">
+            <div class="title">💉 ${info.label}</div>
+          </div>
+          <div class="card-body" style="padding:14px">
+            <div class="form-grid">${doseFields}${antibodyField}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    Modal.open({
+      wide: true,
+      title: `예방접종 기록 - ${emp.name} (${emp.empCode})`,
+      body: `
+        <div style="padding:10px 14px;background:var(--primary-light);border-radius:var(--radius);margin-bottom:14px;font-size:13px">
+          <strong>${esc(emp.name)}</strong> · ${esc(emp.department || '-')} · ${esc(emp.jobTitle || '-')} · 입사 ${formatDate(emp.hireDate) || '-'}
+        </div>
+        <form id="vaccForm">
+          ${typeForms}
+        </form>
+      `,
+      actions: [
+        { text: '취소', variant: 'outline', handler: () => Modal.close() },
+        {
+          text: '저장', variant: 'accent',
+          handler: async () => {
+            const fd = new FormData($('#vaccForm'));
+            const data = Object.fromEntries(fd.entries());
+            
+            const vacc = { empCode: String(empCode) };
+            for (const [type, info] of Object.entries(VACC_TYPES)) {
+              const t = {};
+              for (let i = 1; i <= info.doses; i++) {
+                if (data[`${type}_dose${i}`]) t[`dose${i}`] = data[`${type}_dose${i}`];
+              }
+              if (data[`${type}_antibody`]) t.antibody = data[`${type}_antibody`];
+              if (Object.keys(t).length > 0) vacc[type] = t;
+            }
+            
+            showLoading('저장 중…');
+            try {
+              await DB.saveVaccination(vacc);
+              toast('저장 완료', 'success');
+              Modal.close();
+              Exams._vaccCache = null;
+              await this.loadAll();
+            } catch (e) {
+              toast('저장 실패: ' + e.message, 'error');
+            } finally { hideLoading(); }
+          }
+        }
+      ]
+    });
+  },
+  
+  async showAddModal() {
+    // 직원 선택 먼저
+    Modal.open({
+      title: '예방접종 - 직원 선택',
+      body: `
+        <div class="field">
+          <label>직원 검색 *</label>
+          <input type="text" id="vaccEmpSearch" placeholder="이름 또는 사번 입력…" autocomplete="off">
+          <div id="vaccEmpResults" style="max-height:300px;overflow-y:auto;margin-top:6px;border:1px solid var(--border);border-radius:var(--radius-sm);display:none"></div>
+        </div>
+      `,
+      actions: [
+        { text: '닫기', variant: 'outline', handler: () => Modal.close() }
+      ]
+    });
+    
+    const box = $('#vaccEmpSearch');
+    const results = $('#vaccEmpResults');
+    
+    box.addEventListener('input', () => {
+      const q = normalize(box.value);
+      if (!q) { results.style.display = 'none'; return; }
+      
+      const matches = Employees.list
+        .filter(e => !e.resignDate)
+        .filter(e => normalize(`${e.empCode} ${e.name} ${e.department}`).includes(q))
+        .slice(0, 30);
+      
+      if (matches.length === 0) {
+        results.innerHTML = '<div style="padding:10px;color:var(--text-3);font-size:12px">검색 결과 없음</div>';
+      } else {
+        results.innerHTML = matches.map(e => `
+          <div class="emp-select-item" data-emp="${esc(e.empCode)}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border)">
+            <strong>${esc(e.name)}</strong>
+            <span style="font-family:monospace;color:var(--text-3);font-size:11px;margin-left:6px">${esc(e.empCode)}</span>
+            <div style="font-size:11px;color:var(--text-2)">${esc(e.department||'')} · ${esc(e.jobTitle||'')}</div>
+          </div>
+        `).join('');
+        $$('.emp-select-item').forEach(item => {
+          item.addEventListener('mouseenter', () => item.style.background = 'var(--primary-light)');
+          item.addEventListener('mouseleave', () => item.style.background = '');
+          item.addEventListener('click', () => {
+            Modal.close();
+            setTimeout(() => this.showEditModal(item.dataset.emp), 100);
+          });
+        });
+      }
+      results.style.display = 'block';
+    });
+    
+    setTimeout(() => box.focus(), 100);
+  },
+  
+  exportToExcel() {
+    if (this.filteredList.length === 0) {
+      toast('내보낼 데이터가 없습니다', 'warn');
+      return;
+    }
+    const type = this.currentType;
+    const info = VACC_TYPES[type];
+    
+    const data = this.filteredList.map(v => {
+      const t = v[type] || {};
+      const row = {
+        '사번': v.empCode,
+        '이름': v._emp?.name || '',
+        '부서': v._emp?.department || '',
+        '직무': v._emp?.jobTitle || '',
+      };
+      for (let i = 1; i <= info.doses; i++) {
+        row[`${i}차 접종일`] = formatDate(t[`dose${i}`]) || '';
+      }
+      if (info.hasAntibody) row['항체'] = t.antibody || '';
+      return row;
+    });
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, info.label);
+    const today = formatDate(new Date());
+    XLSX.writeFile(wb, `부민_${info.label}_접종현황_${today}.xlsx`);
+    toast('엑셀 다운로드 완료', 'success');
+  }
+};
+
+
+// ============================================================
+// 10. 상담 대기자 (CounselQueue) 네임스페이스
+// ============================================================
+
+const CounselQueue = {
+  list: [],
+  filteredList: [],
+  
+  async loadAll() {
+    showLoading('상담 대기자 조회 중…');
+    try {
+      const allExams = await DB.getAllExams();
+      this.list = allExams
+        .filter(e => e.needCounsel)
+        .filter(e => !e.counselingId); // Phase 3에서 상담 완료되면 제외될 것
+      // 최신 검진일 우선
+      this.list.sort((a, b) => (b.examDate || '').localeCompare(a.examDate || ''));
+      this.applyFilters();
+      this.renderStats();
+    } catch (e) {
+      console.error(e);
+      toast('상담 대기자 조회 실패: ' + e.message, 'error');
+    } finally { hideLoading(); }
+  },
+  
+  applyFilters() {
+    const q = normalize($('#queueSearchInput').value);
+    const type = $('#filterQueueType').value;
+    const judg = $('#filterQueueJudgment').value;
+    
+    this.filteredList = this.list.filter(e => {
+      if (type && e.examType !== type) return false;
+      if (judg && !(e.judgmentCategory || '').startsWith(judg)) return false;
+      if (q) {
+        const hay = normalize(`${e.empCode} ${e.empName} ${e.department}`);
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    
+    this.renderTable();
+  },
+  
+  renderTable() {
+    $('#queueCountBadge').textContent = `${this.filteredList.length}명`;
+    
+    if (this.filteredList.length === 0) {
+      $('#queueTableBody').innerHTML = '';
+      $('#queueEmptyState').style.display = 'block';
+      return;
+    }
+    $('#queueEmptyState').style.display = 'none';
+    
+    const html = this.filteredList.map(e => {
+      const cat = e.judgmentCategory || '';
+      const judgBadge = cat
+        ? `<span class="badge judg-${cat}">${e.judgmentLabel || cat}</span>`
+        : '-';
+      const typeBadge = `<span class="badge type-${e.examType === 'preemployment' ? 'preemp' : e.examType}">${EXAM_TYPE_LABELS[e.examType] || e.examType}</span>`;
+      
+      return `
+        <tr data-id="${esc(e.id)}">
+          <td style="font-family:monospace;font-size:12px">${esc(e.empCode)}</td>
+          <td><strong>${esc(e.empName || '-')}</strong></td>
+          <td>${esc(e.department || '-')}</td>
+          <td style="font-family:monospace;font-size:12px">${esc(e.examDate || '-')}</td>
+          <td>${typeBadge}</td>
+          <td>${judgBadge}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-2)" title="${esc(e.note||'')}">${esc((e.note || '').substring(0, 30))}${(e.note||'').length > 30 ? '…' : ''}</td>
+          <td style="text-align:right">
+            <button class="btn btn-outline btn-sm" data-id="${esc(e.id)}">상세</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    $('#queueTableBody').innerHTML = html;
+    
+    $$('#queueTableBody button[data-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Exams.list = this.list; // 임시 공유
+        Exams.currentType = this.list.find(e => e.id === btn.dataset.id)?.examType || 'preemployment';
+        Exams.showEditModal(btn.dataset.id);
+      });
+    });
+  },
+  
+  renderStats() {
+    const byType = {};
+    const byJudg = {};
+    for (const e of this.list) {
+      byType[e.examType] = (byType[e.examType] || 0) + 1;
+      const cat = (e.judgmentCategory || '').charAt(0);
+      byJudg[cat] = (byJudg[cat] || 0) + 1;
+    }
+    
+    $('#queueStats').innerHTML = `
+      <div class="stat warn">
+        <div class="label">전체 상담 대기</div>
+        <div class="value">${this.list.length.toLocaleString()}</div>
+        <div class="delta">C/D/R 판정자</div>
+      </div>
+      <div class="stat">
+        <div class="label">채용검진</div>
+        <div class="value">${(byType.preemployment || 0).toLocaleString()}</div>
+      </div>
+      <div class="stat">
+        <div class="label">일반검진</div>
+        <div class="value">${(byType.general || 0).toLocaleString()}</div>
+      </div>
+      <div class="stat">
+        <div class="label">특수검진</div>
+        <div class="value">${(byType.special || 0).toLocaleString()}</div>
+      </div>
+      <div class="stat">
+        <div class="label">판정별 (C / D / R)</div>
+        <div class="value" style="font-size:16px">${byJudg.C || 0} / ${byJudg.D || 0} / ${byJudg.R || 0}</div>
+      </div>
+    `;
+  },
+  
+  exportToExcel() {
+    if (this.filteredList.length === 0) { toast('내보낼 데이터 없음', 'warn'); return; }
+    const data = this.filteredList.map(e => ({
+      '사번': e.empCode,
+      '이름': e.empName,
+      '부서': e.department || '',
+      '검진종류': EXAM_TYPE_LABELS[e.examType] || '',
+      '검진일': e.examDate,
+      '판정': e.judgment,
+      '소견': e.note || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '상담대기자');
+    XLSX.writeFile(wb, `부민_상담대기자_${formatDate(new Date())}.xlsx`);
+    toast('엑셀 다운로드 완료', 'success');
+  }
+};
 
 
 // ============================================================
@@ -2267,6 +4119,12 @@ const Router = {
     
     if (viewName === 'settings') {
       await Settings.refresh();
+    } else if (viewName === 'exams') {
+      await Exams.loadAll();
+    } else if (viewName === 'vaccinations') {
+      await Vaccinations.loadAll();
+    } else if (viewName === 'counsel-queue') {
+      await CounselQueue.loadAll();
     }
   }
 };
@@ -2278,21 +4136,29 @@ const Router = {
 const Settings = {
   async refresh() {
     try {
-      // 연결 확인
       $('#dbStatus').textContent = '연결됨 ✓';
       $('#dbStatus').style.color = 'var(--accent-dark)';
       
-      const [empCount] = await Promise.all([DB.countCollection(COL.EMPLOYEES)]);
+      const [empCount, examCount, vaccCount] = await Promise.all([
+        DB.countCollection(COL.EMPLOYEES),
+        DB.countCollection(COL.EXAMS),
+        DB.countCollection(COL.VACCINATIONS),
+      ]);
       $('#dbStats').innerHTML = `
         <div class="stat accent">
           <div class="label">직원</div>
           <div class="value">${empCount.toLocaleString()}</div>
-          <div class="delta">Firestore: employees</div>
+          <div class="delta">employees</div>
         </div>
         <div class="stat">
           <div class="label">검진 기록</div>
-          <div class="value">0</div>
-          <div class="delta">Phase 2 예정</div>
+          <div class="value">${examCount.toLocaleString()}</div>
+          <div class="delta">exams</div>
+        </div>
+        <div class="stat">
+          <div class="label">예방접종 기록</div>
+          <div class="value">${vaccCount.toLocaleString()}</div>
+          <div class="delta">vaccinations</div>
         </div>
         <div class="stat">
           <div class="label">상담일지</div>
@@ -2387,6 +4253,40 @@ function initApp() {
   
   // 마이그레이션
   Upload.setupDropZone($('#migrateDrop'), $('#migrateFileInput'), f => Migrate.handleFile(f));
+  
+  // ---------- Phase 2: 건강검진 ----------
+  $$('.exam-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const type = tab.dataset.examType;
+      if (type !== 'preemployment') {
+        toast(`${EXAM_TYPE_LABELS[type]}은 Phase 2의 다음 단계에서 구현됩니다`, 'info');
+        return;
+      }
+      Exams.switchTab(type);
+    });
+  });
+  $('#examSearchInput').addEventListener('input', debounce(() => Exams.applyFilters(), 200));
+  $('#filterJudgment').addEventListener('change', () => Exams.applyFilters());
+  $('#filterExamYear').addEventListener('change', () => Exams.applyFilters());
+  $('#btnExamRefresh').addEventListener('click', () => Exams.loadAll());
+  $('#btnExamExport').addEventListener('click', () => Exams.exportToExcel());
+  $('#btnExamBulkUpload').addEventListener('click', () => Exams.showBulkUpload());
+  $('#btnAddExam').addEventListener('click', () => Exams.showEditModal(null));
+  
+  // ---------- Phase 2: 예방접종 ----------
+  $('#vaccSearchInput').addEventListener('input', debounce(() => Vaccinations.applyFilters(), 200));
+  $('#filterVaccStatus').addEventListener('change', () => Vaccinations.applyFilters());
+  $('#filterVaccType').addEventListener('change', () => Vaccinations.applyFilters());
+  $('#btnVaccRefresh').addEventListener('click', () => Vaccinations.loadAll());
+  $('#btnVaccExport').addEventListener('click', () => Vaccinations.exportToExcel());
+  $('#btnAddVacc').addEventListener('click', () => Vaccinations.showAddModal());
+  
+  // ---------- Phase 2: 상담 대기자 ----------
+  $('#queueSearchInput').addEventListener('input', debounce(() => CounselQueue.applyFilters(), 200));
+  $('#filterQueueType').addEventListener('change', () => CounselQueue.applyFilters());
+  $('#filterQueueJudgment').addEventListener('change', () => CounselQueue.applyFilters());
+  $('#btnQueueRefresh').addEventListener('click', () => CounselQueue.loadAll());
+  $('#btnQueueExport').addEventListener('click', () => CounselQueue.exportToExcel());
   
   // 설정
   $('#btnRefreshStats').addEventListener('click', () => Settings.refresh());
