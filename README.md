@@ -1472,6 +1472,7 @@ const Auth = {
 const COL = {
   EMPLOYEES: 'employees',
   EXAMS: 'exams',
+  VACCINATIONS: 'vaccinations',
   COUNSELING: 'counseling',
   SETTINGS: 'settings'
 };
