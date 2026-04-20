@@ -1179,6 +1179,21 @@ service cloud.firestore {
         </div>
 
         <div class="card" style="margin-bottom:14px">
+          <div class="card-header"><div class="title">🔍 직원 정보 진단 및 복구</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text-2);margin-bottom:12px">
+              특정 직원이 재직자인데 퇴사자로 잘못 표시되는 경우, 사번을 입력해 <strong>강제로 재직 상태로 복구</strong>합니다.
+            </p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="repairEmpCode" placeholder="사번 입력 (예: 196101700)" style="flex:1;max-width:240px">
+              <button class="btn btn-outline" id="btnDiagnose">🔍 DB 조회</button>
+              <button class="btn btn-primary" id="btnRepairForceActive">✓ 재직 상태로 강제 복구</button>
+            </div>
+            <div id="repairResult" style="margin-top:12px"></div>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-bottom:14px">
           <div class="card-header"><div class="title">🔧 날짜 형식 일괄 정정</div></div>
           <div class="card-body">
             <p style="font-size:13px;color:var(--text-2);margin-bottom:12px">
@@ -1479,7 +1494,7 @@ const DB = {
     if (!emp.empCode) throw new Error('사번 필수');
     const ref = doc(db, COL.EMPLOYEES, String(emp.empCode));
     
-    // 삭제 대상 필드 목록 (수정 가능한 모든 필드)
+    // 수정 가능한 모든 필드 목록
     const ALL_FIELDS = [
       'name', 'department', 'jobTitle', 'hireDate', 'birthDate', 
       'resignDate', 'transferDate', 'gender', 'email', 'phone', 
@@ -1487,27 +1502,46 @@ const DB = {
     ];
     
     const clean = {};
-    // 들어온 값은 그대로, 빈 값은 deleteField()로 처리
     ALL_FIELDS.forEach(k => {
       const v = emp[k];
       if (v === undefined || v === null || v === '') {
-        // 명시적으로 DB에서 삭제
         clean[k] = deleteField();
       } else {
         clean[k] = v;
       }
     });
     
-    // empCode는 문서 ID이므로 별도 저장 불필요하지만, 검색 편의를 위해 유지
     clean.empCode = String(emp.empCode);
     clean.updatedAt = serverTimestamp();
     
-    // 퇴사일이 비었으면 status도 재직으로 복구 (leave가 아닌 경우)
-    if ((emp.resignDate === undefined || emp.resignDate === null || emp.resignDate === '') 
-        && emp.status !== 'leave') {
+    // 재직/퇴사 상태 확정 로직 (명확하게)
+    const hasResignDate = emp.resignDate && emp.resignDate !== '' && emp.resignDate !== null;
+    const isLeave = emp.status === 'leave';
+    
+    if (!hasResignDate && !isLeave) {
+      // ✅ 완전한 재직 상태로 복구: 퇴사 관련 모든 흔적 제거
+      clean.resignDate = deleteField();
       clean.status = deleteField();
       clean.resignNote = deleteField();
+    } else if (hasResignDate && !isLeave) {
+      // 퇴사자
+      clean.status = 'resigned';
+      clean.resignDate = emp.resignDate;
+    } else if (isLeave) {
+      // 휴직자
+      clean.status = 'leave';
+      // resignDate는 들어온 값 그대로 (있든 없든)
     }
+    
+    // 디버그 로그 (브라우저 콘솔에 출력)
+    console.log('[saveEmployee]', emp.empCode, {
+      hasResignDate, isLeave,
+      inputData: emp,
+      toFirestore: Object.keys(clean).reduce((a, k) => {
+        a[k] = (clean[k] && clean[k]._methodName) ? `[deleteField]` : clean[k];
+        return a;
+      }, {})
+    });
     
     await setDoc(ref, clean, { merge: true });
     return emp.empCode;
@@ -4290,6 +4324,77 @@ function initApp() {
   
   // 설정
   $('#btnRefreshStats').addEventListener('click', () => Settings.refresh());
+  
+  // 직원 정보 진단
+  $('#btnDiagnose').addEventListener('click', async () => {
+    const empCode = $('#repairEmpCode').value.trim();
+    if (!empCode) { toast('사번을 입력하세요', 'warn'); return; }
+    
+    showLoading('조회 중…');
+    try {
+      const emp = await DB.getEmployee(empCode);
+      if (!emp) {
+        $('#repairResult').innerHTML = `<div class="result-banner error">❌ 사번 ${esc(empCode)}를 찾을 수 없습니다</div>`;
+        return;
+      }
+      
+      const hasResign = !!emp.resignDate;
+      const hasStatus = !!emp.status;
+      const isResignState = hasResign || emp.status === 'resigned';
+      
+      $('#repairResult').innerHTML = `
+        <div class="result-banner ${isResignState ? 'warn' : 'success'}">
+          <strong>${esc(emp.name || '-')} (${esc(empCode)})</strong> · ${esc(emp.department || '-')} · ${esc(emp.jobTitle || '-')}<br><br>
+          <div style="font-family:monospace;font-size:11px;line-height:1.7;background:rgba(0,0,0,0.04);padding:8px;border-radius:4px">
+            resignDate: <strong>${emp.resignDate ? esc(String(emp.resignDate)) : '<없음>'}</strong><br>
+            status: <strong>${emp.status ? esc(emp.status) : '<없음>'}</strong><br>
+            resignNote: <strong>${emp.resignNote ? esc(emp.resignNote) : '<없음>'}</strong>
+          </div>
+          <div style="margin-top:8px;font-size:12px">
+            👉 현재 화면 표시 상태: <strong>${isResignState ? (emp.status === 'leave' ? '휴직' : '퇴사') : '재직'}</strong>
+          </div>
+        </div>
+      `;
+    } catch (e) {
+      $('#repairResult').innerHTML = `<div class="result-banner error">오류: ${esc(e.message)}</div>`;
+    } finally { hideLoading(); }
+  });
+  
+  // 재직 상태 강제 복구
+  $('#btnRepairForceActive').addEventListener('click', async () => {
+    const empCode = $('#repairEmpCode').value.trim();
+    if (!empCode) { toast('사번을 입력하세요', 'warn'); return; }
+    
+    if (!confirm(`사번 ${empCode}를 재직 상태로 강제 복구합니다.\n(퇴사일, status, resignNote 모두 DB에서 삭제)\n계속?`)) return;
+    
+    showLoading('복구 중…');
+    try {
+      const ref = doc(db, COL.EMPLOYEES, String(empCode));
+      await setDoc(ref, {
+        resignDate: deleteField(),
+        status: deleteField(),
+        resignNote: deleteField(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      // 다시 조회해서 확인
+      const emp = await DB.getEmployee(empCode);
+      $('#repairResult').innerHTML = `
+        <div class="result-banner success">
+          ✓ 복구 완료 · <strong>${esc(emp?.name || '-')} (${esc(empCode)})</strong><br>
+          <div style="font-family:monospace;font-size:11px;margin-top:6px">
+            resignDate: ${emp?.resignDate ? esc(String(emp.resignDate)) + ' ⚠️' : '<삭제됨>'} ·
+            status: ${emp?.status ? esc(emp.status) + ' ⚠️' : '<삭제됨>'}
+          </div>
+        </div>
+      `;
+      toast('재직 상태로 복구 완료', 'success');
+      await Employees.loadAll();
+    } catch (e) {
+      console.error(e);
+      $('#repairResult').innerHTML = `<div class="result-banner error">실패: ${esc(e.message)}</div>`;
+    } finally { hideLoading(); }
+  });
   
   // 날짜 일괄 정정
   $('#btnFixDates').addEventListener('click', async () => {
