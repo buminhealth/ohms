@@ -333,6 +333,8 @@ table { width: 100%; border-collapse: collapse; }
 .badge.office { background: #e0e7ff; color: #3730a3; }
 .badge.field { background: #fef3c7; color: #92400e; }
 .badge.gray { background: #f3f4f6; color: #374151; }
+.badge.gender-m { background: #dbeafe; color: #1e40af; }
+.badge.gender-f { background: #fce7f3; color: #9d174d; }
 
 /* 검색 툴바 */
 .toolbar {
@@ -689,6 +691,8 @@ table { width: 100%; border-collapse: collapse; }
                     <th>이름</th>
                     <th>부서</th>
                     <th>직무</th>
+                    <th>생년월일</th>
+                    <th>성별</th>
                     <th>입사일</th>
                     <th>상태</th>
                     <th></th>
@@ -840,6 +844,18 @@ service cloud.firestore {
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-header"><div class="title">🔧 날짜 형식 일괄 정정</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text-2);margin-bottom:12px">
+              <strong>입사일/생년월일이 "4/7/25"처럼 표시</strong>되는 경우 클릭하세요. 
+              전체 직원의 날짜 필드를 YYYY-MM-DD 형식으로 자동 변환합니다.
+            </p>
+            <button class="btn btn-primary" id="btnFixDates">📅 날짜 일괄 정정 실행</button>
+            <div id="dateFixResult" style="margin-top:12px"></div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header"><div class="title">🚨 데이터베이스 초기화</div></div>
           <div class="card-body">
@@ -904,26 +920,95 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 
 function formatDate(date) {
   if (!date) return '';
-  if (typeof date === 'string') return date.substring(0, 10);
-  if (date.toDate) date = date.toDate();
+  // Date 객체면 바로 포맷
+  if (date instanceof Date) {
+    if (isNaN(date)) return '';
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  }
+  if (typeof date === 'string') {
+    // 이미 YYYY-MM-DD 형식이면 앞 10자만 잘라 반환
+    if (/^\d{4}-\d{2}-\d{2}/.test(date)) return date.substring(0, 10);
+    // 나머지 문자열은 parseExcelDate로 정규화 시도
+    const parsed = parseExcelDate(date);
+    if (parsed) return parsed;
+    return '';
+  }
+  if (date.toDate) date = date.toDate(); // Firestore Timestamp
   const d = new Date(date);
   if (isNaN(d)) return '';
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function parseExcelDate(value) {
-  if (!value) return null;
-  if (value instanceof Date) return formatDate(value);
+  if (value == null || value === '') return null;
+  
+  // Date 객체
+  if (value instanceof Date) {
+    if (isNaN(value)) return null;
+    return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
+  }
+  
   const s = String(value).trim();
-  if (/^\d{8}$/.test(s)) return `${s.substring(0,4)}-${s.substring(4,6)}-${s.substring(6,8)}`;
-  if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s)) return formatDate(s.replace(/\//g,'-'));
-  if (/^\d{4}\.\d{1,2}\.\d{1,2}/.test(s)) return formatDate(s.replace(/\./g,'-'));
-  // 엑셀 serial number
+  if (!s) return null;
+  
+  // 20260213 형태 (8자리 숫자)
+  if (/^\d{8}$/.test(s)) {
+    const y = parseInt(s.substring(0, 4));
+    const m = parseInt(s.substring(4, 6));
+    const d = parseInt(s.substring(6, 8));
+    if (y >= 1900 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return `${s.substring(0,4)}-${s.substring(4,6)}-${s.substring(6,8)}`;
+    }
+  }
+  
+  // YYYY-MM-DD 또는 YYYY/MM/DD (4자리 연도가 앞)
+  let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+  if (m) {
+    return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  }
+  
+  // M/D/YY or M/D/YYYY (미국식, 2자리 연도 주의)
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (m) {
+    let month = parseInt(m[1]);
+    let day = parseInt(m[2]);
+    let year = parseInt(m[3]);
+    // 2자리 연도 해석: 0~49 → 2000~2049, 50~99 → 1950~1999
+    if (year < 100) {
+      year = year < 50 ? 2000 + year : 1900 + year;
+    }
+    // 한국 기업이라 MM/DD 형식일 수도 있고 DD/MM일 수도 있음
+    // 입사일/생년월일은 MM/DD 가정 (첫 숫자가 12보다 크면 DD/MM)
+    if (month > 12 && day <= 12) {
+      [month, day] = [day, month];
+    }
+    if (year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    }
+  }
+  
+  // YYYY.MM.DD 형태
+  m = s.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  if (m) {
+    return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  }
+  
+  // 엑셀 serial number (1900-01-01 기준)
   const n = Number(s);
   if (!isNaN(n) && n > 25569 && n < 60000) {
     const ms = (n - 25569) * 86400 * 1000;
-    return formatDate(new Date(ms));
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
+  
+  // 마지막 시도: new Date()로 파싱
+  try {
+    const d = new Date(s);
+    if (!isNaN(d) && d.getFullYear() >= 1900 && d.getFullYear() <= 2100) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+  } catch (e) {}
+  
   return null;
 }
 
@@ -1067,6 +1152,59 @@ const DB = {
   async countCollection(colName) {
     const snap = await getDocs(collection(db, colName));
     return snap.size;
+  },
+  
+  /**
+   * 전체 직원의 날짜 필드를 YYYY-MM-DD 형식으로 일괄 정규화
+   */
+  async fixAllDates(onProgress) {
+    const snap = await getDocs(collection(db, COL.EMPLOYEES));
+    const dateFields = ['hireDate', 'birthDate', 'resignDate', 'transferDate'];
+    const stats = { total: snap.size, fixed: 0, skipped: 0, samples: [] };
+    
+    const chunks = [];
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 400) chunks.push(docs.slice(i, i + 400));
+    
+    let done = 0;
+    for (const chunk of chunks) {
+      const batch = writeBatch(db);
+      for (const d of chunk) {
+        const data = d.data();
+        const updates = {};
+        let hasChange = false;
+        
+        for (const f of dateFields) {
+          const v = data[f];
+          if (!v) continue;
+          
+          // 이미 YYYY-MM-DD 형식이면 스킵
+          if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) continue;
+          // 9999-12-31은 퇴사일 불명이므로 스킵
+          if (v === '9999-12-31') continue;
+          
+          const fixed = parseExcelDate(v);
+          if (fixed && fixed !== v) {
+            updates[f] = fixed;
+            hasChange = true;
+            if (stats.samples.length < 5) {
+              stats.samples.push({ name: data.name, field: f, before: String(v), after: fixed });
+            }
+          }
+        }
+        
+        if (hasChange) {
+          batch.update(d.ref, updates);
+          stats.fixed++;
+        } else {
+          stats.skipped++;
+        }
+      }
+      await batch.commit();
+      done += chunk.length;
+      if (onProgress) onProgress(done, snap.size);
+    }
+    return stats;
   }
 };
 
@@ -1269,16 +1407,23 @@ const Employees = {
         statusBadge = '<span class="badge active">재직</span>';
       }
       
-      const jobBadge = isOfficeJob(e.jobTitle)
-        ? '<span class="badge office">사무</span>'
-        : '<span class="badge field">현업</span>';
+      // 사무/현업 배지는 표시하지 않음 (상태 컬럼에 재직정보 있음)
+      
+      const genderBadge = e.gender === '남'
+        ? '<span class="badge gender-m">남</span>'
+        : e.gender === '여'
+        ? '<span class="badge gender-f">여</span>'
+        : '<span style="color:var(--text-3)">-</span>';
+      
       return `
         <tr data-emp="${esc(e.empCode)}">
           <td style="font-family:monospace;font-size:12px">${esc(e.empCode)}</td>
           <td><strong>${esc(e.name || '-')}</strong></td>
           <td>${esc(e.department || '-')}</td>
-          <td>${esc(e.jobTitle || '-')} ${jobBadge}</td>
-          <td style="font-family:monospace;font-size:12px">${formatDate(e.hireDate)}</td>
+          <td>${esc(e.jobTitle || '-')}</td>
+          <td style="font-family:monospace;font-size:12px">${formatDate(e.birthDate) || '-'}</td>
+          <td>${genderBadge}</td>
+          <td style="font-family:monospace;font-size:12px">${formatDate(e.hireDate) || '-'}</td>
           <td>${statusBadge}</td>
           <td style="text-align:right">
             <button class="btn btn-outline btn-sm" data-action="edit" data-emp="${esc(e.empCode)}">수정</button>
@@ -1362,8 +1507,9 @@ const Employees = {
     const active = this.list.filter(e => !e.resignDate && e.status !== 'leave').length;
     const resigned = this.list.filter(e => !!e.resignDate).length;
     const leave = this.list.filter(e => e.status === 'leave').length;
+    const male = this.list.filter(e => !e.resignDate && e.status !== 'leave' && e.gender === '남').length;
+    const female = this.list.filter(e => !e.resignDate && e.status !== 'leave' && e.gender === '여').length;
     const office = this.list.filter(e => !e.resignDate && e.status !== 'leave' && isOfficeJob(e.jobTitle)).length;
-    const field = active - office;
     
     $('#employeeStats').innerHTML = `
       <div class="stat accent">
@@ -1387,9 +1533,9 @@ const Employees = {
         <div class="delta">복직 시 재분류</div>
       </div>` : ''}
       <div class="stat">
-        <div class="label">현업/사무 (재직)</div>
-        <div class="value">${field.toLocaleString()} / ${office.toLocaleString()}</div>
-        <div class="delta">검진 주기 기준</div>
+        <div class="label">성별 (재직)</div>
+        <div class="value" style="font-size:18px">남 ${male.toLocaleString()} / 여 ${female.toLocaleString()}</div>
+        <div class="delta">사무직 ${office.toLocaleString()}명 포함</div>
       </div>
     `;
   },
@@ -2244,6 +2390,45 @@ function initApp() {
   
   // 설정
   $('#btnRefreshStats').addEventListener('click', () => Settings.refresh());
+  
+  // 날짜 일괄 정정
+  $('#btnFixDates').addEventListener('click', async () => {
+    if (!confirm('전체 직원의 날짜 필드(입사일/생년월일/퇴사일/전입일)를 YYYY-MM-DD 형식으로 정규화합니다.\n계속하시겠습니까?')) return;
+    
+    showLoading('날짜 정정 중…');
+    try {
+      const stats = await DB.fixAllDates((done, total) => {
+        $('#loadingText').textContent = `정정 중… (${done}/${total})`;
+      });
+      
+      const samplesHtml = stats.samples.map(s => 
+        `<div style="font-family:monospace;font-size:11px;padding:3px 0">
+          ${esc(s.name)} · ${s.field}: <span style="color:var(--danger)">${esc(s.before)}</span> → <span style="color:var(--accent-dark)">${esc(s.after)}</span>
+        </div>`
+      ).join('');
+      
+      $('#dateFixResult').innerHTML = `
+        <div class="result-banner success">
+          <div class="count">✓ 정정 완료</div>
+          전체 ${stats.total.toLocaleString()}건 · 수정 <strong>${stats.fixed.toLocaleString()}건</strong> · 변경 없음 ${stats.skipped.toLocaleString()}건
+          ${stats.samples.length ? `<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1)">
+            <strong style="font-size:12px">변경 샘플:</strong>
+            ${samplesHtml}
+          </div>` : ''}
+        </div>
+      `;
+      toast(`${stats.fixed.toLocaleString()}건 정정 완료`, 'success');
+      await Employees.loadAll();
+    } catch (e) {
+      console.error(e);
+      $('#dateFixResult').innerHTML = `
+        <div class="result-banner error">
+          <strong>오류:</strong> ${esc(e.message)}
+        </div>
+      `;
+    } finally { hideLoading(); }
+  });
+  
   $('#btnResetDB').addEventListener('click', async () => {
     const confirm1 = prompt('모든 직원 데이터를 삭제합니다.\n계속하려면 "전체삭제"를 입력하세요:');
     if (confirm1 !== '전체삭제') return;
